@@ -4,9 +4,9 @@ import numpy as np
 from PIL import Image
 from collections import Counter
 
-# Step 1: Read the FASTA file
-fasta_file = "sequences.fasta"
-sequences = SeqIO.parse(fasta_file, "fasta")
+# Step 1: Define input and output directories
+fasta_dir = "Dataset/sequences"  # Path to the directory containing individual FASTA files
+output_base_dir = "Dataset/kmer3"  # Base directory for output images
 
 # Step 2: Function to extract 3-mers from a sequence
 def extract_kmers(seq, k=3):
@@ -34,24 +34,32 @@ def frequencies_to_image(frequency_dict, img_size=(64, 64)):
 
     return image_matrix
 
-# Step 5: Create folder structure and save images
-for record in sequences:
-    # Extract accession number and variant from the header
-    header_parts = record.description.split('|')
-    accession = header_parts[0].replace('.', '_')  # Replace '.' with '_' in accession for file name
-    variant = header_parts[2]
+# Step 5: Process each FASTA file in the specified directory
+for fasta_file in os.listdir(fasta_dir):
+    if fasta_file.endswith('.fasta'):  # Process only .fasta files
+        fasta_path = os.path.join(fasta_dir, fasta_file)
+        sequences = SeqIO.parse(fasta_path, "fasta")
 
-    # Create a directory for the variant if it doesn't exist
-    variant_directory = os.path.join('Dataset', 'kmer3', variant)
-    os.makedirs(variant_directory, exist_ok=True)
+        # Process each record in the FASTA file
+        for record in sequences:
+            # Extract accession number and variant from the header
+            header_parts = record.description.split('|')
+            accession = header_parts[0].replace('.', '_')  # Replace '.' with '_' in accession for file name
+            variant = header_parts[2]
 
-    # Generate k-mer frequencies and convert to image
-    frequency_dict = kmer_frequencies(str(record.seq), k=3)
-    img_array = frequencies_to_image(frequency_dict)
-    
-    # Convert the frequency matrix to an image
-    img = Image.fromarray((img_array * 255).astype('uint8'), 'L')  # Create grayscale image
+            # Create a directory for the variant if it doesn't exist
+            variant_directory = os.path.join(output_base_dir, variant)
+            os.makedirs(variant_directory, exist_ok=True)
 
-    # Save the image with accession number in the appropriate variant folder
-    img.save(os.path.join(variant_directory, f"{accession}.png"))
-    print(f"Saved {accession}.png in folder {variant_directory}")
+            # Generate k-mer frequencies and convert to image
+            frequency_dict = kmer_frequencies(str(record.seq), k=3)
+            img_array = frequencies_to_image(frequency_dict)
+            
+            # Convert the frequency matrix to an image
+            img = Image.fromarray((img_array * 255).astype('uint8'), 'L')  # Create grayscale image
+
+            # Save the image with accession number in the appropriate variant folder
+            img.save(os.path.join(variant_directory, f"{accession}.png"))
+            print(f"Saved {accession}.png in folder {variant_directory}")
+
+print("All sequences have been processed and images saved.")
