@@ -1,3 +1,4 @@
-torch==2.3.0
-matplotlib
-scikit-learn
+biopython
+numpy
+Pillow
+pyspark
