@@ -5,4 +5,7 @@ pyspark
 matplotlib
 numba
 seaborn
+torch
+torch-geometric
+scikit-learn
 #also run pip install fcgr-0.1-py3-none-any.whl
