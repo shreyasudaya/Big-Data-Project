@@ -3,4 +3,6 @@ numpy
 Pillow
 pyspark
 matplotlib
+numba
+seaborn
 #also run pip install fcgr-0.1-py3-none-any.whl

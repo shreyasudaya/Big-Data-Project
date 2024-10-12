@@ -79,5 +79,6 @@ for variant_folder in os.listdir(base_dir):
                 plt.axis('off')  # Hide the axes
                 plt.savefig(output_filepath, bbox_inches='tight', pad_inches=0, dpi=300)  # Use higher dpi for better quality
                 plt.close()
+                print(f"Image created and stored: {output_filepath}")
 
 print("FCGR images generated successfully.")
