@@ -42,8 +42,8 @@ def generate_fcgr(sequence, k=3):
     return fcgr
 
 # Path to directory containing variant folders
-base_dir = "Dataset/sequences"
-output_base_dir = "Dataset/kmers3"
+base_dir = "Dataset\sequences"
+output_base_dir = "Dataset\kmers3"
 
 # Iterate through all subfolders (variants)
 for variant_folder in os.listdir(base_dir):
