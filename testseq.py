@@ -1,52 +1,73 @@
+import os
 import numpy as np
+import matplotlib.pyplot as plt
+from Bio import SeqIO
 
-def create_fcgr_matrix(kmer_counts):
-    # Create an empty FCGR matrix of size 64x64
-    fcgr_matrix = np.zeros((64, 64))
+# Function to generate the FCGR matrix
+def generate_fcgr(sequence, k):
+    dim = 2 ** k
+    fcgr_matrix = np.zeros((dim, dim))
 
-    # Define a mapping for nucleotide bases to numbers
-    base_to_num = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    # Convert the sequence to numerical values
+    mapping = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    for i in range(len(sequence) - k + 1):
+        kmer = sequence[i:i + k]
+        x, y = 0, 0
+        valid_kmer = True
+        for j, base in enumerate(kmer):
+            if base in mapping:
+                bit = mapping[base]
+                x = (x << 1) | (bit >> 1)
+                y = (y << 1) | (bit & 1)
+            else:
+                valid_kmer = False
+                break
+        if valid_kmer:
+            fcgr_matrix[x, y] += 1
 
-    # Iterate through the kmer_counts to fill the FCGR matrix
-    for kmer, count in kmer_counts.items():
-        if len(kmer) == 3:  # Only consider 3-mers
-            first_base = base_to_num[kmer[0]]
-            second_base = base_to_num[kmer[1]]
-            third_base = base_to_num[kmer[2]]
-            
-            # Increment the count in the matrix for the first two bases
-            fcgr_matrix[first_base * 4 + second_base][third_base] += count
-
+    # Normalize the matrix
+    fcgr_matrix /= np.sum(fcgr_matrix)
     return fcgr_matrix
 
-# Example k-mer counts based on your output
-kmer_counts = {
-    'AAA': 924, 'AAC': 616, 'AAG': 579, 'AAT': 760, 
-    'ACA': 809, 'ACC': 375, 'ACG': 165, 'ACT': 674,
-    'AGA': 603, 'AGC': 302, 'AGG': 328, 'AGT': 506,
-    'ATA': 472, 'ATC': 342, 'ATG': 723, 'ATT': 771,
-    'CAA': 702, 'CAC': 458, 'CAG': 437, 'CAT': 486,
-    'CCA': 355, 'CCC': 115, 'CCG': 72, 'CCT': 342,
-    'CGA': 95, 'CGC': 97, 'CGG': 75, 'CGT': 170,
-    'CTA': 556, 'CTC': 287, 'CTG': 493, 'CTT': 741,
-    'GAA': 535, 'GAC': 340, 'GAG': 297, 'GAT': 439,
-    'GCA': 373, 'GCC': 188, 'GCG': 88, 'GCT': 519,
-    'GGA': 280, 'GGC': 223, 'GGG': 134, 'GGT': 454,
-    'GTA': 468, 'GTC': 264, 'GTG': 554, 'GTT': 701,
-    'TAA': 718, 'TAC': 609, 'TAG': 426, 'TAT': 623,
-    'TCA': 546, 'TCC': 206, 'TCG': 112, 'TCT': 542,
-    'TGA': 633, 'TGC': 546, 'TGG': 554, 'TGT': 857,
-    'TTA': 880, 'TTC': 513, 'TTG': 820, 'TTT': 1007,
-}
+# Function to save FCGR as an image
+def save_fcgr_image(fcgr_matrix, output_path):
+    plt.imshow(fcgr_matrix, cmap='hot', interpolation='nearest')
+    plt.axis('off')  # Hide axes
+    plt.savefig(output_path, bbox_inches='tight', pad_inches=0)
+    plt.close()
 
-# Create the FCGR matrix
-fcgr_matrix = create_fcgr_matrix(kmer_counts)
+# Main function to process all FASTA files in subdirectories
+def process_fasta_files(input_dir, output_dir, k=8):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-# Output the FCGR matrix shape and the matrix itself
+    # Walk through each subdirectory
+    for root, dirs, files in os.walk(input_dir):
+        for file in files:
+            if file.endswith(".fasta") or file.endswith(".fa"):
+                file_path = os.path.join(root, file)
 
-print("FCGR matrix shape:", fcgr_matrix.shape)
-with open("log.txt", "w") as log_file:
-        log_file.write("FCGR matrix shape: {}\n".format(fcgr_matrix.shape))
-        log_file.write("FCGR matrix:\n")
-        np.savetxt(log_file, fcgr_matrix, fmt='%.5f')
-print(fcgr_matrix)
+                # Create the corresponding subdirectory in the output
+                relative_path = os.path.relpath(root, input_dir)
+                output_subdir = os.path.join(output_dir, relative_path)
+                if not os.path.exists(output_subdir):
+                    os.makedirs(output_subdir)
+
+                # Read the sequence from the FASTA file
+                fasta_sequences = SeqIO.parse(open(file_path), 'fasta')
+                for fasta in fasta_sequences:
+                    sequence = str(fasta.seq)
+
+                    # Generate the FCGR matrix
+                    fcgr_matrix = generate_fcgr(sequence.upper(), k)
+
+                    # Save the FCGR matrix as an image
+                    accession = fasta.id
+                    output_path = os.path.join(output_subdir, f"{accession}.png")
+                    save_fcgr_image(fcgr_matrix, output_path)
+                    print(f"Saved FCGR image for {file} in {output_path}")
+
+# Example usage
+input_directory = "Dataset\sequences"
+output_directory = "Dataset\Fcgr"
+process_fasta_files(input_directory, output_directory, k=8)
