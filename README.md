@@ -1,7 +1,6 @@
 # Covid-19 variant classification using GNN
 By Shreyas Udaya, Harsha N.P., Kiran Reddy R.
 
-![image](../fig/vig.png)
 
 ## Requirements
 Pytorch,
