@@ -28,10 +28,20 @@ Data preparation follows the algorithm
 
 Dataset is also available in directory Dataset, with it consisting of kmers, one-hot and fcgr feature extractions. Alongside this is Feature Ext, which contains the files in order to extract the feature and convert it.
 
-Directory
-|
-|__ Dataset
-|
-|__ Feature Ext
-|
-|__ gnn_classifier.ipynb
+```
+project
+│   README.md
+│   gnn_classifier.ipynb
+|   splitset.py    
+│
+└───Dataset
+│   │   
+│   └───FCGR
+|   └───kmer  
+│   └───one-hot    
+│        
+└───Feature Ext
+    │   kprocheatmap.py
+    │   kproc.py
+    |   proc.py
+```
